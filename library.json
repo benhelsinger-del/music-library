@@ -1,0 +1,11 @@
+{
+  "songs": [
+    {
+      "id": "1",
+      "title": "MeekMillHoesDownGzUp",
+      "artist": "Meek Mill",
+      "audioURL": "https://raw.githubusercontent.com/benhelsinger-del/music-library/main/MeekMillHoesDownGzUp.mp3",
+      "artworkURL": null
+    }
+  ]
+}
