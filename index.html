@@ -4,33 +4,118 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>My Music</title>
+
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#0b0b0b" />
+
   <style>
     :root { --bg:#0b0b0b; --card:#111; --line:#222; --muted:#a7a7a7; }
-    body { font-family:-apple-system,system-ui,sans-serif; margin:0; background:var(--bg); color:#fff; }
-    header { padding:16px; font-size:20px; font-weight:800; border-bottom:1px solid var(--line); position:sticky; top:0; background:rgba(11,11,11,.92); backdrop-filter: blur(10px); }
-    .wrap { padding:16px; max-width:720px; margin:0 auto; }
-    .toprow { display:flex; gap:10px; align-items:center; }
-    input { flex:1; padding:12px; border-radius:12px; border:1px solid var(--line); background:var(--card); color:#fff; }
-    .pill { padding:10px 12px; border-radius:12px; border:1px solid var(--line); background:var(--card); color:#fff; font-weight:700; }
-    .song { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid #1f1f1f; }
-    .song.current { background: rgba(31,111,235,.08); border-bottom-color: rgba(31,111,235,.25); }
-    .art { width:44px; height:44px; border-radius:10px; background:#1a1a1a; flex:0 0 auto; overflow:hidden; }
-    .art img { width:100%; height:100%; object-fit:cover; display:block; }
-    .meta { flex:1; min-width:0; }
-    .title { font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .artist { color:var(--muted); font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .btn { background:#1f6feb; color:#fff; border:0; padding:10px 12px; border-radius:12px; font-weight:800; }
-    .btn.ghost { background:transparent; border:1px solid var(--line); color:#fff; }
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: #fff;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    header {
+      padding: 16px;
+      font-size: 20px;
+      font-weight: 800;
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      background: rgba(11,11,11,.92);
+      backdrop-filter: blur(10px);
+      z-index: 5;
+    }
+    .wrap { padding: 16px; max-width: 720px; margin: 0 auto; }
+    .toprow { display: flex; gap: 10px; align-items: center; }
+    input {
+      flex: 1;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: #fff;
+      outline: none;
+    }
+    input::placeholder { color: #6f6f6f; }
+    .pill {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: #fff;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .pill:active { transform: translateY(1px); }
+
+    .song {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-bottom: 1px solid #1f1f1f;
+      border-radius: 14px;
+      margin-top: 10px;
+      background: rgba(17,17,17,.55);
+    }
+    .song.current {
+      background: rgba(31,111,235,.10);
+      outline: 1px solid rgba(31,111,235,.35);
+    }
+    .art {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      background: #1a1a1a;
+      flex: 0 0 auto;
+      overflow: hidden;
+    }
+    .art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .meta { flex: 1; min-width: 0; }
+    .title { font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .artist { color: var(--muted); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .btn {
+      background: #1f6feb;
+      color: #fff;
+      border: 0;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-weight: 900;
+    }
+    .btn.ghost {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: #fff;
+    }
     .btn:active { transform: translateY(1px); }
-    .fav { font-size:18px; }
-    .player { position: sticky; bottom: 0; background: rgba(17,17,17,.95); backdrop-filter: blur(10px); border-top:1px solid var(--line); padding: 12px; }
-    .now { font-size: 13px; color: var(--muted); margin-bottom:8px; }
-    .controls { display:flex; gap:10px; align-items:center; }
-    audio { width: 100%; margin-top:10px; }
+    .fav { font-size: 18px; line-height: 1; }
+
+    .player {
+      position: sticky;
+      bottom: 0;
+      background: rgba(17,17,17,.95);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--line);
+      padding: 12px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
+      z-index: 5;
+    }
+    .now { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+    .controls { display: flex; gap: 10px; align-items: center; }
+    audio { width: 100%; margin-top: 10px; }
+
+    /* Small screens: tighten buttons a bit */
+    @media (max-width: 390px) {
+      .btn, .pill { padding: 9px 10px; border-radius: 11px; }
+      header { font-size: 18px; }
+    }
   </style>
 </head>
+
 <body>
   <header>My Music</header>
 
@@ -55,5 +140,13 @@
   </div>
 
   <script src="app.js"></script>
+
+  <!-- Optional: make it offline-friendly (add sw.js in repo root) -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    }
+  </script>
 </body>
+</html>
 </html>
