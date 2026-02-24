@@ -2,34 +2,55 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>My Music</title>
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#111111" />
+  <meta name="theme-color" content="#0b0b0b" />
   <style>
-    body { font-family: -apple-system, system-ui, sans-serif; margin: 0; background: #0b0b0b; color: #fff; }
-    header { padding: 16px; font-size: 20px; font-weight: 700; border-bottom: 1px solid #222; }
-    .wrap { padding: 16px; max-width: 680px; margin: 0 auto; }
-    input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #222; background:#111; color:#fff; }
-    .song { display:flex; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid #1f1f1f; }
-    .meta { display:flex; flex-direction:column; }
-    .title { font-weight:700; }
-    .artist { color:#aaa; font-size: 14px; }
-    button { background:#1f6feb; color:#fff; border:0; padding:10px 14px; border-radius:10px; font-weight:700; }
-    .player { position: sticky; bottom: 0; background:#111; border-top:1px solid #222; padding: 12px; }
-    .now { font-size: 14px; color:#aaa; margin-bottom:8px; }
-    audio { width: 100%; }
+    :root { --bg:#0b0b0b; --card:#111; --line:#222; --muted:#a7a7a7; }
+    body { font-family:-apple-system,system-ui,sans-serif; margin:0; background:var(--bg); color:#fff; }
+    header { padding:16px; font-size:20px; font-weight:800; border-bottom:1px solid var(--line); position:sticky; top:0; background:rgba(11,11,11,.92); backdrop-filter: blur(10px); }
+    .wrap { padding:16px; max-width:720px; margin:0 auto; }
+    .toprow { display:flex; gap:10px; align-items:center; }
+    input { flex:1; padding:12px; border-radius:12px; border:1px solid var(--line); background:var(--card); color:#fff; }
+    .pill { padding:10px 12px; border-radius:12px; border:1px solid var(--line); background:var(--card); color:#fff; font-weight:700; }
+    .song { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid #1f1f1f; }
+    .song.current { background: rgba(31,111,235,.08); border-bottom-color: rgba(31,111,235,.25); }
+    .art { width:44px; height:44px; border-radius:10px; background:#1a1a1a; flex:0 0 auto; overflow:hidden; }
+    .art img { width:100%; height:100%; object-fit:cover; display:block; }
+    .meta { flex:1; min-width:0; }
+    .title { font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .artist { color:var(--muted); font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .btn { background:#1f6feb; color:#fff; border:0; padding:10px 12px; border-radius:12px; font-weight:800; }
+    .btn.ghost { background:transparent; border:1px solid var(--line); color:#fff; }
+    .btn:active { transform: translateY(1px); }
+    .fav { font-size:18px; }
+    .player { position: sticky; bottom: 0; background: rgba(17,17,17,.95); backdrop-filter: blur(10px); border-top:1px solid var(--line); padding: 12px; }
+    .now { font-size: 13px; color: var(--muted); margin-bottom:8px; }
+    .controls { display:flex; gap:10px; align-items:center; }
+    audio { width: 100%; margin-top:10px; }
   </style>
 </head>
 <body>
   <header>My Music</header>
+
   <div class="wrap">
-    <input id="search" placeholder="Search songs..." />
+    <div class="toprow">
+      <input id="search" placeholder="Search songs..." />
+      <button class="pill" id="filterFavs">All</button>
+      <button class="pill" id="shuffleBtn">Shuffle: Off</button>
+    </div>
+
     <div id="list"></div>
   </div>
 
   <div class="player">
     <div class="now" id="now">Not playing</div>
+    <div class="controls">
+      <button class="btn ghost" id="prevBtn">Prev</button>
+      <button class="btn" id="playPauseBtn">Play</button>
+      <button class="btn ghost" id="nextBtn">Next</button>
+    </div>
     <audio id="audio" controls></audio>
   </div>
 
