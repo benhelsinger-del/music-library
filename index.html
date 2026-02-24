@@ -1,178 +1,513 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>GZ UP</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>GZ UP RADIO</title>
 
-<link rel="manifest" href="manifest.json" />
-<meta name="theme-color" content="#e10600" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#e10600" />
 
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&display=swap');
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&display=swap');
 
-:root {
-  --supreme-red: #e10600;
-}
+    :root{
+      --red:#e10600;
+      --bg:#0b0b0b;
+      --card:rgba(20,20,20,.82);
+      --line:rgba(255,255,255,.09);
+      --muted:rgba(255,255,255,.66);
+      --shadow: 0 10px 40px rgba(0,0,0,.55);
+      --radius:16px;
+    }
 
-body {
-  margin: 0;
-  font-family: 'Montserrat', sans-serif;
-  color: white;
-  background-image: url("fellas.jpg");
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-}
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family:'Montserrat',system-ui,-apple-system,sans-serif;
+      color:#fff;
+      background: #000 url("fellas.jpg") center/cover fixed no-repeat;
+      overflow-x:hidden;
+    }
 
-/* Dark cinematic overlay */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.75);
-  backdrop-filter: blur(6px);
-  z-index: -1;
-}
+    /* cinematic dark + blur */
+    body::before{
+      content:"";
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.76);
+      backdrop-filter: blur(8px) saturate(1.1);
+      z-index:-2;
+    }
 
-/* Subtle grain texture */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background-image: url("https://grainy-gradients.vercel.app/noise.svg");
-  opacity: 0.08;
-  pointer-events: none;
-  z-index: -1;
-}
+    /* grit */
+    body::after{
+      content:"";
+      position:fixed; inset:-40px;
+      background-image:url("https://grainy-gradients.vercel.app/noise.svg");
+      opacity:.10;
+      pointer-events:none;
+      z-index:-1;
+      mix-blend-mode: overlay;
+    }
 
-header {
-  padding: 20px;
-  font-size: 22px;
-  font-weight: 900;
-  background: var(--supreme-red);
-  text-transform: uppercase;
-  letter-spacing: 2px;
-}
+    /* Supreme header */
+    header{
+      position:sticky; top:0; z-index:50;
+      background: var(--red);
+      padding: 16px 16px calc(12px + env(safe-area-inset-top));
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      text-transform:uppercase;
+      letter-spacing:2px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.35);
+    }
+    .brand{
+      display:flex; flex-direction:column; gap:2px;
+      line-height:1;
+    }
+    .brand .title{ font-weight:900; font-size:18px; }
+    .brand .sub{ font-weight:800; font-size:11px; opacity:.9; }
 
-.wrap {
-  padding: 18px;
-  max-width: 720px;
-  margin: 0 auto;
-}
+    .top-actions{
+      display:flex; gap:10px; align-items:center;
+    }
+    .chip{
+      border:1px solid rgba(255,255,255,.25);
+      background: rgba(0,0,0,.18);
+      color:#fff;
+      padding:10px 12px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:1px;
+      backdrop-filter: blur(8px);
+    }
+    .chip:active{ transform: translateY(1px); }
 
-input {
-  width: 100%;
-  padding: 14px;
-  margin-bottom: 18px;
-  background: black;
-  color: white;
-  border: none;
-  font-weight: 700;
-  outline: none;
-}
+    .wrap{
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 16px;
+      padding-bottom: 140px; /* room for mini player */
+    }
 
-input::placeholder {
-  color: #777;
-}
+    /* Search bar */
+    .searchRow{
+      display:flex; gap:10px; align-items:center;
+      margin-top: 10px;
+    }
+    .search{
+      flex:1;
+      border-radius: 999px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.55);
+      padding: 14px 16px;
+      color:#fff;
+      font-weight:800;
+      outline:none;
+      box-shadow: var(--shadow);
+    }
+    .search::placeholder{ color: rgba(255,255,255,.45); }
 
-.song {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px;
-  margin-bottom: 12px;
-  background: rgba(20,20,20,0.85);
-  border-left: 4px solid transparent;
-  transition: 0.2s ease;
-}
+    .pill{
+      border-radius: 999px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.55);
+      padding: 12px 14px;
+      color:#fff;
+      font-weight:900;
+      text-transform:uppercase;
+      font-size:12px;
+      letter-spacing:1px;
+      box-shadow: var(--shadow);
+    }
+    .pill.on{
+      border-color: rgba(225,6,0,.7);
+      background: rgba(225,6,0,.22);
+    }
+    .pill:active{ transform: translateY(1px); }
 
-.song:hover {
-  background: rgba(225,6,0,0.1);
-}
+    /* List */
+    #list{ margin-top: 14px; display:grid; gap:12px; }
+    .song{
+      display:flex; gap:12px; align-items:center;
+      padding: 12px;
+      border-radius: var(--radius);
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      position:relative;
+      overflow:hidden;
+    }
+    .song::before{
+      content:"";
+      position:absolute; inset:0;
+      background: radial-gradient(800px 140px at -10% 0%, rgba(225,6,0,.20), transparent 55%);
+      opacity:.9;
+      pointer-events:none;
+    }
+    .song.current{
+      border-color: rgba(225,6,0,.6);
+      box-shadow: 0 14px 55px rgba(225,6,0,.18), var(--shadow);
+    }
 
-.song.current {
-  border-left: 4px solid var(--supreme-red);
-  background: rgba(225,6,0,0.15);
-}
+    .art{
+      width:54px; height:54px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.08);
+      overflow:hidden;
+      flex:0 0 auto;
+      border: 1px solid rgba(255,255,255,.10);
+    }
+    .art img{ width:100%; height:100%; object-fit:cover; display:block; }
 
-.meta {
-  flex: 1;
-}
+    .meta{ flex:1; min-width:0; position:relative; }
+    .t{
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:1px;
+      font-size:14px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .a{
+      margin-top:4px;
+      font-weight:800;
+      font-size:12px;
+      color: var(--muted);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
 
-.title {
-  font-weight: 900;
-  font-size: 14px;
-  text-transform: uppercase;
-}
+    .rowBtns{ display:flex; gap:10px; align-items:center; position:relative; z-index:2; }
+    .btn{
+      border:0;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:1px;
+      font-size:12px;
+      color:#fff;
+      cursor:pointer;
+    }
+    .btn.play{ background: var(--red); }
+    .btn.ghost{
+      background: rgba(0,0,0,.25);
+      border:1px solid var(--line);
+    }
+    .btn:active{ transform: scale(.98); }
+    .heart{ font-size:16px; line-height:1; }
 
-.artist {
-  font-size: 12px;
-  color: #bbb;
-}
+    /* Mini player */
+    .mini{
+      position:fixed; left:12px; right:12px;
+      bottom: calc(12px + env(safe-area-inset-bottom));
+      z-index: 60;
+      background: rgba(0,0,0,.78);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 18px;
+      padding: 12px;
+      box-shadow: 0 18px 70px rgba(0,0,0,.6);
+      backdrop-filter: blur(14px);
+      display:none;
+    }
+    .mini.show{ display:block; }
 
-.btn {
-  background: var(--supreme-red);
-  border: none;
-  color: white;
-  padding: 8px 14px;
-  font-weight: 900;
-  text-transform: uppercase;
-  cursor: pointer;
-}
+    .miniTop{
+      display:flex; gap:12px; align-items:center;
+    }
+    .miniArt{
+      width:48px; height:48px; border-radius: 14px;
+      overflow:hidden; background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.10);
+      flex:0 0 auto;
+    }
+    .miniArt img{ width:100%; height:100%; object-fit:cover; display:block; }
 
-.btn:active {
-  transform: scale(0.96);
-}
+    .miniMeta{ flex:1; min-width:0; }
+    .miniTitle{
+      font-weight:900; text-transform:uppercase; letter-spacing:1px;
+      font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .miniArtist{
+      margin-top:3px;
+      color: var(--muted);
+      font-weight:800;
+      font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
 
-.player {
-  position: sticky;
-  bottom: 0;
-  background: black;
-  border-top: 4px solid var(--supreme-red);
-  padding: 16px;
-  padding-bottom: calc(16px + env(safe-area-inset-bottom));
-}
+    .miniBtns{ display:flex; gap:8px; align-items:center; }
+    .miniIcon{
+      width:42px; height:42px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.25);
+      color:#fff;
+      font-weight:900;
+      display:grid; place-items:center;
+    }
+    .miniIcon.red{
+      background: rgba(225,6,0,.25);
+      border-color: rgba(225,6,0,.6);
+    }
+    .miniIcon:active{ transform: translateY(1px); }
 
-.now {
-  font-size: 12px;
-  color: #ccc;
-  margin-bottom: 10px;
-  text-transform: uppercase;
-}
+    /* Progress bar */
+    .progWrap{ margin-top:10px; }
+    .progRow{
+      display:flex; justify-content:space-between;
+      font-size:11px; color: var(--muted);
+      font-weight:800;
+      margin-bottom:8px;
+    }
+    .bar{
+      width:100%; height:8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      overflow:hidden;
+      position:relative;
+    }
+    .bar > i{
+      display:block; height:100%;
+      width:0%;
+      background: linear-gradient(90deg, var(--red), rgba(225,6,0,.55));
+      border-radius: 999px;
+    }
+    .scrub{
+      appearance:none;
+      width:100%;
+      background:transparent;
+      position:absolute;
+      inset:0;
+      margin:0;
+      cursor:pointer;
+    }
+    .scrub::-webkit-slider-thumb{
+      appearance:none;
+      width:18px; height:18px;
+      border-radius:50%;
+      background:#fff;
+      border: 3px solid var(--red);
+      box-shadow: 0 6px 14px rgba(0,0,0,.4);
+    }
 
-audio {
-  width: 100%;
-  filter: invert(1);
-}
-</style>
+    /* Fullscreen Now Playing modal */
+    .modal{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.86);
+      backdrop-filter: blur(18px);
+      z-index: 80;
+      display:none;
+      padding: 14px 14px calc(14px + env(safe-area-inset-bottom));
+    }
+    .modal.show{ display:block; }
+
+    .npTop{
+      display:flex; justify-content:space-between; align-items:center;
+      margin-top: calc(8px + env(safe-area-inset-top));
+    }
+    .npTag{
+      padding: 10px 12px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.25);
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:1px;
+      font-size:12px;
+    }
+    .npClose{
+      width:46px; height:46px;
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.25);
+      color:#fff;
+      font-weight:900;
+      font-size:18px;
+      display:grid; place-items:center;
+    }
+
+    .npCenter{
+      max-width: 560px;
+      margin: 16px auto 0;
+      display:flex; flex-direction:column; align-items:center;
+      gap: 14px;
+    }
+    .npArt{
+      width:min(78vw, 340px);
+      aspect-ratio:1/1;
+      border-radius: 26px;
+      overflow:hidden;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: 0 22px 90px rgba(0,0,0,.7);
+      position:relative;
+    }
+    .npArt::after{
+      content:"";
+      position:absolute; inset:0;
+      background: radial-gradient(600px 250px at 30% 0%, rgba(225,6,0,.22), transparent 60%);
+      pointer-events:none;
+    }
+    .npArt img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+    .npTitle{
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:2px;
+      text-align:center;
+      font-size:18px;
+      margin-top: 6px;
+    }
+    .npArtist{
+      text-align:center;
+      color: rgba(255,255,255,.75);
+      font-weight:800;
+      font-size:13px;
+      text-transform:uppercase;
+      letter-spacing:1px;
+    }
+
+    .npControls{
+      width:min(92vw, 560px);
+      display:flex; justify-content:center; gap:12px;
+      margin-top: 10px;
+    }
+    .bigBtn{
+      width:56px; height:56px;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.22);
+      color:#fff;
+      font-weight:900;
+      display:grid; place-items:center;
+      font-size:16px;
+    }
+    .bigBtn.red{
+      background: rgba(225,6,0,.26);
+      border-color: rgba(225,6,0,.7);
+    }
+    .bigBtn:active{ transform: translateY(1px); }
+
+    .npBottom{
+      width:min(92vw, 560px);
+      margin: 10px auto 0;
+    }
+
+    /* tiny hint */
+    .hint{
+      margin-top:10px;
+      text-align:center;
+      color: rgba(255,255,255,.45);
+      font-weight:800;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:1px;
+    }
+  </style>
 </head>
 
 <body>
+  <header>
+    <div class="brand">
+      <div class="title">GZ UP RADIO</div>
+      <div class="sub">SUPREME SKATE PLAYER</div>
+    </div>
+    <div class="top-actions">
+      <button class="chip" id="openNowPlaying">Now</button>
+      <button class="chip" id="toggleHelp">Tips</button>
+    </div>
+  </header>
 
-<header>GZ UP RADIO</header>
+  <div class="wrap">
+    <div class="searchRow">
+      <input class="search" id="search" placeholder="Search tracks..." autocomplete="off" />
+      <button class="pill" id="filterFavs">All</button>
+      <button class="pill" id="shuffleBtn">Shuffle</button>
+      <button class="pill" id="repeatBtn">Repeat</button>
+    </div>
 
-<div class="wrap">
-  <input id="search" placeholder="Search tracks..." />
-  <div id="list"></div>
-</div>
+    <div id="list"></div>
+    <div class="hint" id="hint" style="display:none;">
+      Swipe on the big cover: left/right = next/prev • double tap = play/pause
+    </div>
+  </div>
 
-<div class="player">
-  <div class="now" id="now">Not playing</div>
-  <audio id="audio" controls></audio>
-</div>
+  <!-- Mini Player -->
+  <div class="mini" id="mini">
+    <div class="miniTop" id="miniTap">
+      <div class="miniArt"><img id="miniImg" alt="" /></div>
+      <div class="miniMeta">
+        <div class="miniTitle" id="miniTitle">Not playing</div>
+        <div class="miniArtist" id="miniArtist">—</div>
+      </div>
+      <div class="miniBtns">
+        <button class="miniIcon" id="miniPrev">⟵</button>
+        <button class="miniIcon red" id="miniPlay">▶</button>
+        <button class="miniIcon" id="miniNext">⟶</button>
+      </div>
+    </div>
 
-<script src="app.js"></script>
+    <div class="progWrap">
+      <div class="progRow">
+        <span id="tNow">0:00</span>
+        <span id="tDur">0:00</span>
+      </div>
+      <div class="bar">
+        <i id="barFill"></i>
+        <input class="scrub" id="scrub" type="range" min="0" max="1000" value="0" />
+      </div>
+    </div>
+  </div>
 
-<script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js").catch(() => {});
-}
-</script>
+  <!-- Hidden audio element -->
+  <audio id="audio" preload="metadata"></audio>
 
-</body>
-</html>
+  <!-- Now Playing Modal -->
+  <div class="modal" id="modal">
+    <div class="npTop">
+      <div class="npTag" id="npMode">GZ UP</div>
+      <button class="npClose" id="closeModal">✕</button>
+    </div>
+
+    <div class="npCenter">
+      <div class="npArt" id="npArt">
+        <img id="npImg" alt="" />
+      </div>
+
+      <div class="npTitle" id="npTitle">Not playing</div>
+      <div class="npArtist" id="npArtist">—</div>
+
+      <div class="npBottom">
+        <div class="progWrap">
+          <div class="progRow">
+            <span id="tNow2">0:00</span>
+            <span id="tDur2">0:00</span>
+          </div>
+          <div class="bar">
+            <i id="barFill2"></i>
+            <input class="scrub" id="scrub2" type="range" min="0" max="1000" value="0" />
+          </div>
+        </div>
+
+        <div class="npControls">
+          <button class="bigBtn" id="npFav">♡</button>
+          <button class="bigBtn" id="npPrev">⟵</button>
+          <button class="bigBtn red" id="npPlay">▶</button>
+          <button class="bigBtn" id="npNext">⟶</button>
+          <button class="bigBtn" id="npShuffle">⇄</button>
+        </div>
+
+        <div class="hint">Tip: the cover is swipeable</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+
+  <!-- Optional offline support (only if you add sw.js) -->
+  <script>
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(()=>{});
   </script>
 </body>
-</html>
 </html>
