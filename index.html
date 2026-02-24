@@ -6,13 +6,13 @@
   <title>GZ UP RADIO</title>
 
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#e10600" />
+  <meta name="theme-color" content="#1e6cff" />
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&display=swap');
 
     :root{
-      --red:#e10600;
+      --blue:#1e6cff;
       --bg:#0b0b0b;
       --card:rgba(20,20,20,.82);
       --line:rgba(255,255,255,.09);
@@ -23,6 +23,7 @@
 
     *{ box-sizing:border-box; }
     html,body{ height:100%; }
+
     body{
       margin:0;
       font-family:'Montserrat',system-ui,-apple-system,sans-serif;
@@ -51,23 +52,31 @@
       mix-blend-mode: overlay;
     }
 
-    /* Supreme header */
+    /* Header */
     header{
       position:sticky; top:0; z-index:50;
-      background: var(--red);
+      background: var(--blue);
       padding: 16px 16px calc(12px + env(safe-area-inset-top));
       display:flex; align-items:center; justify-content:space-between; gap:12px;
-      text-transform:uppercase;
-      letter-spacing:2px;
       box-shadow: 0 6px 18px rgba(0,0,0,.35);
     }
     .brand{
       display:flex; flex-direction:column; gap:2px;
-      line-height:1;
+      line-height:1.05;
     }
-    .brand .title{ font-weight:900; font-size:18px; }
-    .brand .sub{ font-weight:800; font-size:11px; opacity:.9; }
-
+    .brand .title{
+      font-weight:900;
+      font-size:18px;
+      text-transform:uppercase;
+      letter-spacing:2px;
+    }
+    .brand .sub{
+      font-weight:700;
+      font-size:12px;
+      opacity:.95;
+      text-transform:none;
+      letter-spacing:0;
+    }
     .top-actions{
       display:flex; gap:10px; align-items:center;
     }
@@ -85,6 +94,7 @@
     }
     .chip:active{ transform: translateY(1px); }
 
+    /* Layout */
     .wrap{
       max-width: 860px;
       margin: 0 auto;
@@ -92,7 +102,7 @@
       padding-bottom: 140px; /* room for mini player */
     }
 
-    /* Search bar */
+    /* Search bar row */
     .searchRow{
       display:flex; gap:10px; align-items:center;
       margin-top: 10px;
@@ -121,15 +131,17 @@
       font-size:12px;
       letter-spacing:1px;
       box-shadow: var(--shadow);
+      white-space:nowrap;
     }
     .pill.on{
-      border-color: rgba(225,6,0,.7);
-      background: rgba(225,6,0,.22);
+      border-color: rgba(30,108,255,.75);
+      background: rgba(30,108,255,.22);
     }
     .pill:active{ transform: translateY(1px); }
 
     /* List */
     #list{ margin-top: 14px; display:grid; gap:12px; }
+
     .song{
       display:flex; gap:12px; align-items:center;
       padding: 12px;
@@ -143,13 +155,13 @@
     .song::before{
       content:"";
       position:absolute; inset:0;
-      background: radial-gradient(800px 140px at -10% 0%, rgba(225,6,0,.20), transparent 55%);
+      background: radial-gradient(800px 140px at -10% 0%, rgba(30,108,255,.20), transparent 55%);
       opacity:.9;
       pointer-events:none;
     }
     .song.current{
-      border-color: rgba(225,6,0,.6);
-      box-shadow: 0 14px 55px rgba(225,6,0,.18), var(--shadow);
+      border-color: rgba(30,108,255,.7);
+      box-shadow: 0 14px 55px rgba(30,108,255,.18), var(--shadow);
     }
 
     .art{
@@ -190,7 +202,7 @@
       color:#fff;
       cursor:pointer;
     }
-    .btn.play{ background: var(--red); }
+    .btn.play{ background: var(--blue); }
     .btn.ghost{
       background: rgba(0,0,0,.25);
       border:1px solid var(--line);
@@ -246,9 +258,9 @@
       font-weight:900;
       display:grid; place-items:center;
     }
-    .miniIcon.red{
-      background: rgba(225,6,0,.25);
-      border-color: rgba(225,6,0,.6);
+    .miniIcon.blue{
+      background: rgba(30,108,255,.25);
+      border-color: rgba(30,108,255,.65);
     }
     .miniIcon:active{ transform: translateY(1px); }
 
@@ -270,7 +282,7 @@
     .bar > i{
       display:block; height:100%;
       width:0%;
-      background: linear-gradient(90deg, var(--red), rgba(225,6,0,.55));
+      background: linear-gradient(90deg, var(--blue), rgba(30,108,255,.55));
       border-radius: 999px;
     }
     .scrub{
@@ -287,7 +299,7 @@
       width:18px; height:18px;
       border-radius:50%;
       background:#fff;
-      border: 3px solid var(--red);
+      border: 3px solid var(--blue);
       box-shadow: 0 6px 14px rgba(0,0,0,.4);
     }
 
@@ -346,7 +358,7 @@
     .npArt::after{
       content:"";
       position:absolute; inset:0;
-      background: radial-gradient(600px 250px at 30% 0%, rgba(225,6,0,.22), transparent 60%);
+      background: radial-gradient(600px 250px at 30% 0%, rgba(30,108,255,.22), transparent 60%);
       pointer-events:none;
     }
     .npArt img{ width:100%; height:100%; object-fit:cover; display:block; }
@@ -364,8 +376,8 @@
       color: rgba(255,255,255,.75);
       font-weight:800;
       font-size:13px;
-      text-transform:uppercase;
-      letter-spacing:1px;
+      text-transform:none;
+      letter-spacing:0;
     }
 
     .npControls{
@@ -383,9 +395,9 @@
       display:grid; place-items:center;
       font-size:16px;
     }
-    .bigBtn.red{
-      background: rgba(225,6,0,.26);
-      border-color: rgba(225,6,0,.7);
+    .bigBtn.blue{
+      background: rgba(30,108,255,.26);
+      border-color: rgba(30,108,255,.7);
     }
     .bigBtn:active{ transform: translateY(1px); }
 
@@ -394,7 +406,6 @@
       margin: 10px auto 0;
     }
 
-    /* tiny hint */
     .hint{
       margin-top:10px;
       text-align:center;
@@ -411,7 +422,7 @@
   <header>
     <div class="brand">
       <div class="title">GZ UP RADIO</div>
-      <div class="sub">SUPREME SKATE PLAYER</div>
+      <div class="sub">Brought to you by Ben</div>
     </div>
     <div class="top-actions">
       <button class="chip" id="openNowPlaying">Now</button>
@@ -443,7 +454,7 @@
       </div>
       <div class="miniBtns">
         <button class="miniIcon" id="miniPrev">⟵</button>
-        <button class="miniIcon red" id="miniPlay">▶</button>
+        <button class="miniIcon blue" id="miniPlay">▶</button>
         <button class="miniIcon" id="miniNext">⟶</button>
       </div>
     </div>
@@ -493,7 +504,7 @@
         <div class="npControls">
           <button class="bigBtn" id="npFav">♡</button>
           <button class="bigBtn" id="npPrev">⟵</button>
-          <button class="bigBtn red" id="npPlay">▶</button>
+          <button class="bigBtn blue" id="npPlay">▶</button>
           <button class="bigBtn" id="npNext">⟶</button>
           <button class="bigBtn" id="npShuffle">⇄</button>
         </div>
