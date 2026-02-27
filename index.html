@@ -4,13 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>GZ UP RADIO</title>
-
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#1e6cff" />
-
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&display=swap');
-
     :root{
       --blue:#1e6cff;
       --bg:#0b0b0b;
@@ -20,10 +17,8 @@
       --shadow: 0 10px 40px rgba(0,0,0,.55);
       --radius:16px;
     }
-
     *{ box-sizing:border-box; }
     html,body{ height:100%; }
-
     body{
       margin:0;
       font-family:'Montserrat',system-ui,-apple-system,sans-serif;
@@ -31,7 +26,6 @@
       background: #000 url("fellas.jpg") center/cover fixed no-repeat;
       overflow-x:hidden;
     }
-
     /* cinematic dark + blur */
     body::before{
       content:"";
@@ -40,7 +34,6 @@
       backdrop-filter: blur(8px) saturate(1.1);
       z-index:-2;
     }
-
     /* grit */
     body::after{
       content:"";
@@ -51,7 +44,6 @@
       z-index:-1;
       mix-blend-mode: overlay;
     }
-
     /* Header */
     header{
       position:sticky; top:0; z-index:50;
@@ -93,7 +85,6 @@
       backdrop-filter: blur(8px);
     }
     .chip:active{ transform: translateY(1px); }
-
     /* Layout */
     .wrap{
       max-width: 860px;
@@ -101,7 +92,6 @@
       padding: 16px;
       padding-bottom: 140px; /* room for mini player */
     }
-
     /* Search bar row */
     .searchRow{
       display:flex; gap:10px; align-items:center;
@@ -119,7 +109,6 @@
       box-shadow: var(--shadow);
     }
     .search::placeholder{ color: rgba(255,255,255,.45); }
-
     .pill{
       border-radius: 999px;
       border:1px solid var(--line);
@@ -138,10 +127,83 @@
       background: rgba(30,108,255,.22);
     }
     .pill:active{ transform: translateY(1px); }
+    /* Ripper section - new */
+    .ripper-section {
+      margin: 24px 0 32px;
+      padding: 20px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .ripper-section::before {
+      content: "";
+      position: absolute; inset: 0;
+      background: radial-gradient(800px 140px at -10% 0%, rgba(30,108,255,.20), transparent 55%);
+      opacity: .9;
+      pointer-events: none;
+    }
+    .ripper-title {
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: var(--blue);
+      text-align: center;
+    }
+    .ripper-input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.55);
+      color: #fff;
+      font-weight: 800;
+      font-size: 15px;
+      margin-bottom: 16px;
+      outline: none;
+      box-shadow: var(--shadow);
+    }
+    .ripper-input::placeholder { color: rgba(255,255,255,.45); }
+    .ripper-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .ripper-btn {
+      padding: 12px 24px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 13px;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .ripper-btn.mp3 {
+      background: #1DB954; /* Spotify green vibe for audio */
+      color: white;
+    }
+    .ripper-btn.video {
+      background: var(--blue);
+      color: white;
+    }
+    .ripper-btn:hover { opacity: .9; transform: scale(1.05); }
+    .ripper-note {
+      margin-top: 16px;
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      font-weight: 800;
+    }
 
     /* List */
     #list{ margin-top: 14px; display:grid; gap:12px; }
-
     .song{
       display:flex; gap:12px; align-items:center;
       padding: 12px;
@@ -163,7 +225,6 @@
       border-color: rgba(30,108,255,.7);
       box-shadow: 0 14px 55px rgba(30,108,255,.18), var(--shadow);
     }
-
     .art{
       width:54px; height:54px;
       border-radius: 14px;
@@ -173,7 +234,6 @@
       border: 1px solid rgba(255,255,255,.10);
     }
     .art img{ width:100%; height:100%; object-fit:cover; display:block; }
-
     .meta{ flex:1; min-width:0; position:relative; }
     .t{
       font-weight:900;
@@ -189,7 +249,6 @@
       color: var(--muted);
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
-
     .rowBtns{ display:flex; gap:10px; align-items:center; position:relative; z-index:2; }
     .btn{
       border:0;
@@ -209,7 +268,6 @@
     }
     .btn:active{ transform: scale(.98); }
     .heart{ font-size:16px; line-height:1; }
-
     /* Mini player */
     .mini{
       position:fixed; left:12px; right:12px;
@@ -224,7 +282,6 @@
       display:none;
     }
     .mini.show{ display:block; }
-
     .miniTop{
       display:flex; gap:12px; align-items:center;
     }
@@ -235,7 +292,6 @@
       flex:0 0 auto;
     }
     .miniArt img{ width:100%; height:100%; object-fit:cover; display:block; }
-
     .miniMeta{ flex:1; min-width:0; }
     .miniTitle{
       font-weight:900; text-transform:uppercase; letter-spacing:1px;
@@ -247,7 +303,6 @@
       font-weight:800;
       font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
-
     .miniBtns{ display:flex; gap:8px; align-items:center; }
     .miniIcon{
       width:42px; height:42px;
@@ -263,7 +318,6 @@
       border-color: rgba(30,108,255,.65);
     }
     .miniIcon:active{ transform: translateY(1px); }
-
     /* Progress bar */
     .progWrap{ margin-top:10px; }
     .progRow{
@@ -302,7 +356,6 @@
       border: 3px solid var(--blue);
       box-shadow: 0 6px 14px rgba(0,0,0,.4);
     }
-
     /* Fullscreen Now Playing modal */
     .modal{
       position:fixed; inset:0;
@@ -313,7 +366,6 @@
       padding: 14px 14px calc(14px + env(safe-area-inset-bottom));
     }
     .modal.show{ display:block; }
-
     .npTop{
       display:flex; justify-content:space-between; align-items:center;
       margin-top: calc(8px + env(safe-area-inset-top));
@@ -338,7 +390,6 @@
       font-size:18px;
       display:grid; place-items:center;
     }
-
     .npCenter{
       max-width: 560px;
       margin: 16px auto 0;
@@ -362,7 +413,6 @@
       pointer-events:none;
     }
     .npArt img{ width:100%; height:100%; object-fit:cover; display:block; }
-
     .npTitle{
       font-weight:900;
       text-transform:uppercase;
@@ -379,7 +429,6 @@
       text-transform:none;
       letter-spacing:0;
     }
-
     .npControls{
       width:min(92vw, 560px);
       display:flex; justify-content:center; gap:12px;
@@ -400,12 +449,10 @@
       border-color: rgba(30,108,255,.7);
     }
     .bigBtn:active{ transform: translateY(1px); }
-
     .npBottom{
       width:min(92vw, 560px);
       margin: 10px auto 0;
     }
-
     .hint{
       margin-top:10px;
       text-align:center;
@@ -417,7 +464,6 @@
     }
   </style>
 </head>
-
 <body>
   <header>
     <div class="brand">
@@ -429,7 +475,6 @@
       <button class="chip" id="toggleHelp">Tips</button>
     </div>
   </header>
-
   <div class="wrap">
     <div class="searchRow">
       <input class="search" id="search" placeholder="Search tracks..." autocomplete="off" />
@@ -438,12 +483,24 @@
       <button class="pill" id="repeatBtn">Repeat</button>
     </div>
 
+    <!-- NEW: YouTube Ripper section -->
+    <div class="ripper-section">
+      <div class="ripper-title">Personal YouTube Ripper</div>
+      <input type="text" class="ripper-input" id="ytUrl" placeholder="Paste YouTube link here..." />
+      <div class="ripper-buttons">
+        <button class="ripper-btn mp3" onclick="rip('mp3')">Get MP3 (Audio)</button>
+        <button class="ripper-btn video" onclick="rip('video')">Get Video (MP4)</button>
+      </div>
+      <div class="ripper-note">
+        For personal/offline use only • Opens trusted external sites (they handle the download)
+      </div>
+    </div>
+
     <div id="list"></div>
     <div class="hint" id="hint" style="display:none;">
       Swipe on the big cover: left/right = next/prev • double tap = play/pause
     </div>
   </div>
-
   <!-- Mini Player -->
   <div class="mini" id="mini">
     <div class="miniTop" id="miniTap">
@@ -458,7 +515,6 @@
         <button class="miniIcon" id="miniNext">⟶</button>
       </div>
     </div>
-
     <div class="progWrap">
       <div class="progRow">
         <span id="tNow">0:00</span>
@@ -470,25 +526,20 @@
       </div>
     </div>
   </div>
-
   <!-- Hidden audio element -->
   <audio id="audio" preload="metadata"></audio>
-
   <!-- Now Playing Modal -->
   <div class="modal" id="modal">
     <div class="npTop">
       <div class="npTag" id="npMode">GZ UP</div>
       <button class="npClose" id="closeModal">✕</button>
     </div>
-
     <div class="npCenter">
       <div class="npArt" id="npArt">
         <img id="npImg" alt="" />
       </div>
-
       <div class="npTitle" id="npTitle">Not playing</div>
       <div class="npArtist" id="npArtist">—</div>
-
       <div class="npBottom">
         <div class="progWrap">
           <div class="progRow">
@@ -500,7 +551,6 @@
             <input class="scrub" id="scrub2" type="range" min="0" max="1000" value="0" />
           </div>
         </div>
-
         <div class="npControls">
           <button class="bigBtn" id="npFav">♡</button>
           <button class="bigBtn" id="npPrev">⟵</button>
@@ -508,13 +558,49 @@
           <button class="bigBtn" id="npNext">⟶</button>
           <button class="bigBtn" id="npShuffle">⇄</button>
         </div>
-
         <div class="hint">Tip: the cover is swipeable</div>
       </div>
     </div>
   </div>
 
   <script src="app.js"></script>
+  <!-- NEW: Ripper JS -->
+  <script>
+    function rip(type) {
+      const url = document.getElementById('ytUrl').value.trim();
+      if (!url) {
+        alert("Paste a YouTube link first!");
+        return;
+      }
+      if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
+        alert("That doesn't look like a YouTube link...");
+        return;
+      }
+
+      let urls = [];
+      if (type === 'mp3') {
+        // MP3-focused (2026 reliable ones)
+        urls = [
+          `https://ezmp3.cc/?url=${encodeURIComponent(url)}`,           // EZMP3 - fast & clean
+          `https://ytmp3.cc/?url=${encodeURIComponent(url)}`,           // YTMP3 classic variant
+          `https://v2.yt1s.biz/en18/?url=${encodeURIComponent(url)}`    // YT1s variant still active
+        ];
+      } else {
+        // Video/MP4
+        urls = [
+          `https://v2.yt1s.biz/en18/?url=${encodeURIComponent(url)}`,   // YT1s good for video too
+          `https://www.ytvideodownloader.online/?url=${encodeURIComponent(url)}`, // HD video focused
+          `https://publer.com/tools/youtube-video-downloader?url=${encodeURIComponent(url)}` // No ads claim
+        ];
+      }
+
+      // Open first one immediately, second after slight delay (in case one blocks)
+      window.open(urls[0], '_blank');
+      if (urls[1]) {
+        setTimeout(() => window.open(urls[1], '_blank'), 1200);
+      }
+    }
+  </script>
 
   <!-- Optional offline support (only if you add sw.js) -->
   <script>
