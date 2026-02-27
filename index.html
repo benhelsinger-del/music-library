@@ -127,7 +127,7 @@
       background: rgba(30,108,255,.22);
     }
     .pill:active{ transform: translateY(1px); }
-    /* Ripper section - new */
+    /* Ripper section */
     .ripper-section {
       margin: 24px 0 32px;
       padding: 20px;
@@ -186,7 +186,7 @@
       transition: all .2s;
     }
     .ripper-btn.mp3 {
-      background: #1DB954; /* Spotify green vibe for audio */
+      background: #1DB954; /* green for audio */
       color: white;
     }
     .ripper-btn.video {
@@ -202,7 +202,7 @@
       font-weight: 800;
     }
 
-    /* List */
+    /* Rest of your styles (list, mini player, modal, etc.) remain unchanged */
     #list{ margin-top: 14px; display:grid; gap:12px; }
     .song{
       display:flex; gap:12px; align-items:center;
@@ -268,7 +268,6 @@
     }
     .btn:active{ transform: scale(.98); }
     .heart{ font-size:16px; line-height:1; }
-    /* Mini player */
     .mini{
       position:fixed; left:12px; right:12px;
       bottom: calc(12px + env(safe-area-inset-bottom));
@@ -318,7 +317,6 @@
       border-color: rgba(30,108,255,.65);
     }
     .miniIcon:active{ transform: translateY(1px); }
-    /* Progress bar */
     .progWrap{ margin-top:10px; }
     .progRow{
       display:flex; justify-content:space-between;
@@ -356,7 +354,6 @@
       border: 3px solid var(--blue);
       box-shadow: 0 6px 14px rgba(0,0,0,.4);
     }
-    /* Fullscreen Now Playing modal */
     .modal{
       position:fixed; inset:0;
       background: rgba(0,0,0,.86);
@@ -483,16 +480,16 @@
       <button class="pill" id="repeatBtn">Repeat</button>
     </div>
 
-    <!-- NEW: YouTube Ripper section -->
+    <!-- YouTube Ripper section -->
     <div class="ripper-section">
       <div class="ripper-title">Personal YouTube Ripper</div>
-      <input type="text" class="ripper-input" id="ytUrl" placeholder="Paste YouTube link here..." />
+      <input type="text" class="ripper-input" id="ytUrl" placeholder="Paste YouTube link (youtu.be or full URL)..." />
       <div class="ripper-buttons">
-        <button class="ripper-btn mp3" onclick="rip('mp3')">Get MP3 (Audio)</button>
-        <button class="ripper-btn video" onclick="rip('video')">Get Video (MP4)</button>
+        <button class="ripper-btn mp3" onclick="rip('mp3')">Get MP3</button>
+        <button class="ripper-btn video" onclick="rip('video')">Get Video</button>
       </div>
       <div class="ripper-note">
-        For personal/offline use only • Opens trusted external sites (they handle the download)
+        Personal/offline use only • Opens external sites (test which loads best) • Respect creators & YouTube rules
       </div>
     </div>
 
@@ -501,7 +498,8 @@
       Swipe on the big cover: left/right = next/prev • double tap = play/pause
     </div>
   </div>
-  <!-- Mini Player -->
+
+  <!-- Mini Player, audio, modal remain the same -->
   <div class="mini" id="mini">
     <div class="miniTop" id="miniTap">
       <div class="miniArt"><img id="miniImg" alt="" /></div>
@@ -526,9 +524,7 @@
       </div>
     </div>
   </div>
-  <!-- Hidden audio element -->
   <audio id="audio" preload="metadata"></audio>
-  <!-- Now Playing Modal -->
   <div class="modal" id="modal">
     <div class="npTop">
       <div class="npTag" id="npMode">GZ UP</div>
@@ -564,7 +560,8 @@
   </div>
 
   <script src="app.js"></script>
-  <!-- NEW: Ripper JS -->
+
+  <!-- Ripper logic - updated services Feb 2026 -->
   <script>
     function rip(type) {
       const url = document.getElementById('ytUrl').value.trim();
@@ -573,36 +570,35 @@
         return;
       }
       if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
-        alert("That doesn't look like a YouTube link...");
+        alert("Make sure it's a YouTube link!");
         return;
       }
 
       let urls = [];
       if (type === 'mp3') {
-        // MP3-focused (2026 reliable ones)
+        // MP3/audio - working in US 2026 per recent checks
         urls = [
-          `https://ezmp3.cc/?url=${encodeURIComponent(url)}`,           // EZMP3 - fast & clean
-          `https://ytmp3.cc/?url=${encodeURIComponent(url)}`,           // YTMP3 classic variant
-          `https://v2.yt1s.biz/en18/?url=${encodeURIComponent(url)}`    // YT1s variant still active
+          `https://ytmp3.as/?url=${encodeURIComponent(url)}`,          // YTMP3 variant
+          `https://fastytm.com/?url=${encodeURIComponent(url)}`,      // FastYTM - lightweight
+          `https://v6.www-y2mate.com/?url=${encodeURIComponent(url)}` // Y2Mate still reliable
         ];
       } else {
         // Video/MP4
         urls = [
-          `https://v2.yt1s.biz/en18/?url=${encodeURIComponent(url)}`,   // YT1s good for video too
-          `https://www.ytvideodownloader.online/?url=${encodeURIComponent(url)}`, // HD video focused
-          `https://publer.com/tools/youtube-video-downloader?url=${encodeURIComponent(url)}` // No ads claim
+          `https://www.ytvideodownloader.online/?url=${encodeURIComponent(url)}`, // Clean HD
+          `https://yt5s.ltd/?url=${encodeURIComponent(url)}`,                    // YT5s fast/no limits
+          `https://publer.com/tools/youtube-video-downloader?url=${encodeURIComponent(url)}` // Ad-light
         ];
       }
 
-      // Open first one immediately, second after slight delay (in case one blocks)
+      // Open main one + fallback(s) with delay
       window.open(urls[0], '_blank');
-      if (urls[1]) {
-        setTimeout(() => window.open(urls[1], '_blank'), 1200);
-      }
+      if (urls[1]) setTimeout(() => window.open(urls[1], '_blank'), 1200);
+      if (urls[2]) setTimeout(() => window.open(urls[2], '_blank'), 2400);
     }
   </script>
 
-  <!-- Optional offline support (only if you add sw.js) -->
+  <!-- Service Worker -->
   <script>
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(()=>{});
   </script>
