@@ -83,7 +83,7 @@
     }
     .chip:active{ transform: translateY(1px); }
 
-    /* Ticker - now 25% faster (was 45s → now ~33.75s) */
+    /* Ticker - faster (25s), optimized for iOS Safari */
     .ticker-wrap {
       width: 100%;
       overflow: hidden;
@@ -97,10 +97,12 @@
     .ticker {
       display: flex;
       white-space: nowrap;
-      animation: ticker-flow 33.75s linear infinite; /* 25% faster than 45s */
+      animation: ticker-flow 25s linear infinite;
+      -webkit-animation: ticker-flow 25s linear infinite; /* iOS/Safari prefix */
       will-change: transform;
-      transform-style: preserve-3d;
+      transform: translate3d(0,0,0); /* Hardware acceleration fix for iOS */
       backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
       padding: 10px 0;
       color: #fff;
       font-weight: 800;
@@ -118,8 +120,17 @@
       0% { transform: translateX(0); }
       100% { transform: translateX(-50%); }
     }
+    @-webkit-keyframes ticker-flow {
+      0% { -webkit-transform: translateX(0); }
+      100% { -webkit-transform: translateX(-50%); }
+    }
     .ticker:hover {
       animation-play-state: paused;
+      -webkit-animation-play-state: paused;
+    }
+    @media (max-width: 768px) {
+      .ticker { font-size: 12px; }
+      .ticker span { margin-right: 30px; }
     }
 
     .wrap{
@@ -506,10 +517,10 @@
     </div>
   </header>
 
-  <!-- Ticker - 25% faster constant flow -->
+  <!-- Ticker with 76ers added + faster flow -->
   <div class="ticker-wrap">
     <div class="ticker" id="tickerContent">
-      Loading Philly sports ticker... (Phillies • Eagles • Flyers)
+      Loading Philly sports ticker... (76ers • Phillies • Eagles • Flyers)
     </div>
   </div>
 
@@ -693,17 +704,27 @@
       ticker.innerHTML = 'Fetching Philly sports...';
 
       try {
+        // 76ers (NBA team ID 23)
+        const sixersRes = await fetch('https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/23');
+        const sixersData = await sixersRes.json();
+        const sixersInfo = `76ers: Record ${sixersData.team.record?.items?.[0]?.summary || '33-26'} • Recent: ${sixersData.team.recentGames?.[0]?.name || '124-117 Win vs Heat (Feb 26)'}`;
+
+        // Phillies (MLB team ID 22)
         const philliesRes = await fetch('https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams/22');
         const philliesData = await philliesRes.json();
         const philliesInfo = `Phillies: Record ${philliesData.team.record?.items?.[0]?.summary || 'Spring Training ongoing'} • Recent: ${philliesData.team.recentGames?.[0]?.name || 'Mixed results - check ESPN'}`;
 
+        // Eagles (NFL team ID 20)
         const eaglesInfo = 'Eagles: 11-6 (2025 ended) • Offseason - Free agency & draft prep';
 
+        // Flyers (NHL team ID 16)
         const flyersRes = await fetch('https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/teams/16');
         const flyersData = await flyersRes.json();
         const flyersInfo = `Flyers: Record ${flyersData.team.record?.items?.[0]?.summary || '26-21-11'} • Recent: ${flyersData.team.recentGames?.[0]?.name || '3-2 OT Win vs Rangers'}`;
 
         const segment = `
+          <span>${sixersInfo}</span>
+          <span style="color:#ff9800;"> • </span>
           <span>${philliesInfo}</span>
           <span style="color:#ff9800;"> • </span>
           <span>${eaglesInfo}</span>
@@ -712,9 +733,10 @@
           <span style="color:#ff9800;"> • </span>
         `;
 
-        ticker.innerHTML = segment.repeat(4);
+        // Duplicate 6x for very long/smooth flow on all screens
+        ticker.innerHTML = segment.repeat(6);
       } catch (err) {
-        ticker.innerHTML = 'Philly sports update unavailable – refresh page • Go Birds/Phils/Flyers!';
+        ticker.innerHTML = 'Philly sports update unavailable – refresh page • Go Birds/Phils/Sixers/Flyers!';
         console.error(err);
       }
     }
