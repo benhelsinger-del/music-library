@@ -233,7 +233,7 @@
       background: #1DB954;
       color: white;
     }
-    .ripper-btn.video, .ripper-btn.download {
+    .ripper-btn.video {
       background: var(--blue);
       color: white;
     }
@@ -245,23 +245,11 @@
       text-align: center;
       font-weight: 800;
     }
-    #searchResults {
-      margin-top: 16px;
-      max-height: 220px;
-      overflow-y: auto;
-      padding: 8px;
-      background: rgba(0,0,0,.4);
-      border-radius: 12px;
-    }
-    #searchResults > div {
-      padding: 10px;
-      margin: 6px 0;
-      background: rgba(255,255,255,.05);
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    #searchResults > div:hover {
-      background: rgba(30,108,255,.15);
+    #searchStatus {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
     }
     #list{ margin-top: 14px; display:grid; gap:12px; }
     .song{
@@ -550,21 +538,21 @@
 
     <div id="list"></div>
 
-    <!-- Updated Ripper: supports name search or URL paste -->
+    <!-- Ripper: Type song name or paste URL -->
     <div class="ripper-section">
       <div class="ripper-title">Rip YouTube Song</div>
       
-      <input type="text" class="ripper-input" id="searchInput" placeholder="Type song name or paste YouTube URL..." onkeypress="if(event.key==='Enter') searchAndRip();" />
+      <input type="text" class="ripper-input" id="songInput" placeholder="Type song name (e.g. Drake God's Plan)" onkeypress="if(event.key==='Enter') ripFromName();" />
       
       <div class="ripper-buttons" style="margin-top:16px;">
-        <button class="ripper-btn mp3" onclick="searchAndRip()">Search & Get MP3</button>
-        <button class="ripper-btn video" onclick="searchAndRip(true)">Search & Get Video</button>
+        <button class="ripper-btn mp3" onclick="ripFromName()">Get MP3</button>
+        <button class="ripper-btn video" onclick="ripFromName(true)">Get Video</button>
       </div>
 
-      <div id="searchResults" style="margin-top:16px; max-height:220px; overflow-y:auto;"></div>
+      <div id="searchStatus" style="margin-top:16px; font-size:13px; color:var(--muted); text-align:center;"></div>
 
       <div class="ripper-note" style="margin-top:16px;">
-        Type artist + song (e.g. "Drake God's Plan") → picks top result → rips MP3/video
+        Just type the song name → rips the top YouTube match automatically
       </div>
     </div>
 
@@ -584,6 +572,7 @@
     </div>
   </div>
 
+  <!-- Mini player, audio, modal unchanged -->
   <div class="mini" id="mini">
     <div class="miniTop" id="miniTap">
       <div class="miniArt"><img id="miniImg" alt="" /></div>
@@ -646,93 +635,79 @@
 
   <script src="app.js"></script>
 
-  <!-- Ripper + search logic -->
+  <!-- Ripper logic: now primarily song name search -->
   <script>
-    // Public Invidious instance - change if this one stops working
+    // Public Invidious instance (fast & working in US 2026)
     const invidious = 'https://inv.tux.pizza';
 
-    async function searchAndRip(isVideo = false) {
-      const input = document.getElementById('searchInput').value.trim();
-      const resultsDiv = document.getElementById('searchResults');
-      if (!resultsDiv) return;
-
-      resultsDiv.innerHTML = '';
+    async function ripFromName(isVideo = false) {
+      const input = document.getElementById('songInput').value.trim();
+      const status = document.getElementById('searchStatus');
 
       if (!input) {
-        alert("Enter a song name or YouTube URL first!");
+        alert("Type a song name or paste YouTube URL first!");
         return;
       }
 
-      // If it's already a YouTube URL, rip directly
+      status.innerHTML = 'Searching YouTube...';
+
+      // If it's already a full URL, rip directly
       if (input.includes('youtube.com') || input.includes('youtu.be')) {
+        status.innerHTML = 'Ripping from pasted URL...';
         rip(isVideo ? 'video' : 'mp3', input);
-        resultsDiv.innerHTML = '<div style="color:var(--muted);">Ripping directly from pasted URL...</div>';
         return;
       }
-
-      // Otherwise search
-      resultsDiv.innerHTML = '<div style="color:var(--muted);">Searching YouTube...</div>';
 
       try {
+        // Search YouTube via Invidious
         const res = await fetch(`${invidious}/api/v1/search?q=${encodeURIComponent(input)}&type=video`);
         if (!res.ok) throw new Error('Search failed');
         const data = await res.json();
 
         if (!data.length) {
-          resultsDiv.innerHTML = '<div style="color:var(--muted);">No results found. Try a different name or paste full URL.</div>';
+          status.innerHTML = 'No results found. Try a different name or paste full URL.';
           return;
         }
 
-        let html = '<div style="font-size:13px; color:var(--muted); margin-bottom:8px;">Top matches – tap to rip:</div>';
-        data.slice(0, 4).forEach(video => {  // show up to 4 best matches
-          const title = video.title || 'Untitled';
-          const author = video.author || 'Unknown';
-          const views = video.viewsText || '';
-          const videoId = video.videoId;
-          const url = `https://www.youtube.com/watch?v=${videoId}`;
+        // Take the #1 result automatically
+        const topVideo = data[0];
+        const videoId = topVideo.videoId;
+        const url = `https://www.youtube.com/watch?v=${videoId}`;
 
-          html += `
-            <div style="padding:10px; margin:6px 0; background:rgba(255,255,255,.05); border-radius:8px; cursor:pointer;"
-                 onclick="rip('${isVideo ? 'video' : 'mp3'}', '${url}'); resultsDiv.innerHTML='Ripping...';">
-              <div style="font-weight:800;">${title}</div>
-              <div style="color:var(--muted); font-size:12px;">${author} • ${views}</div>
-            </div>
-          `;
-        });
+        status.innerHTML = `Ripping top match: "${topVideo.title}" by ${topVideo.author || 'Unknown'}...`;
 
-        resultsDiv.innerHTML = html || '<div style="color:var(--muted);">No good matches – try more specific text.</div>';
+        // Rip it!
+        rip(isVideo ? 'video' : 'mp3', url);
       } catch (err) {
-        resultsDiv.innerHTML = '<div style="color:var(--muted);">Search failed (instance may be down). Paste full URL instead.</div>';
+        status.innerHTML = 'Search failed. Try pasting full YouTube URL instead.';
         console.error(err);
       }
     }
 
-    function rip(type, forcedUrl = null) {
-      const url = forcedUrl || document.getElementById('searchInput')?.value.trim();
-
+    function rip(type, url) {
       if (!url) {
-        alert("No link or search term found!");
+        alert("No valid link found!");
         return;
       }
 
-      let urls = [];
+      let ripperUrls = [];
       if (type === 'mp3') {
-        urls = [
+        ripperUrls = [
           `https://ytmp3.as/?url=${encodeURIComponent(url)}`,
           `https://fastytm.com/?url=${encodeURIComponent(url)}`,
           `https://v6.www-y2mate.com/?url=${encodeURIComponent(url)}`
         ];
       } else {
-        urls = [
+        ripperUrls = [
           `https://www.ytvideodownloader.online/?url=${encodeURIComponent(url)}`,
           `https://yt5s.ltd/?url=${encodeURIComponent(url)}`,
           `https://publer.com/tools/youtube-video-downloader?url=${encodeURIComponent(url)}`
         ];
       }
 
-      window.open(urls[0], '_blank');
-      if (urls[1]) setTimeout(() => window.open(urls[1], '_blank'), 1200);
-      if (urls[2]) setTimeout(() => window.open(urls[2], '_blank'), 2400);
+      window.open(ripperUrls[0], '_blank');
+      if (ripperUrls[1]) setTimeout(() => window.open(ripperUrls[1], '_blank'), 1200);
+      if (ripperUrls[2]) setTimeout(() => window.open(ripperUrls[2], '_blank'), 2400);
     }
 
     function addLocalMp3() {
@@ -783,6 +758,7 @@
     }
   </script>
 
+  <!-- Ticker (unchanged from previous version) -->
   <script>
     async function loadPhillyTicker() {
       const ticker = document.getElementById('tickerContent');
@@ -791,13 +767,13 @@
       try {
         const sixersRes = await fetch('https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/23');
         const sixersData = await sixersRes.json();
-        const sixersInfo = `76ers: Record ${sixersData.team.record?.items?.[0]?.summary || '33-26'} • Recent: ${sixersData.team.recentGames?.[0]?.name || '124-117 Win vs Heat (Feb 26)'}`;
+        const sixersInfo = `76ers: Record ${sixersData.team.record?.items?.[0]?.summary || '33-26'} • Recent: ${sixersData.team.recentGames?.[0]?.name || '124-117 Win vs Heat'}`;
 
         const philliesRes = await fetch('https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams/22');
         const philliesData = await philliesRes.json();
-        const philliesInfo = `Phillies: Record ${philliesData.team.record?.items?.[0]?.summary || 'Spring Training ongoing'} • Recent: ${philliesData.team.recentGames?.[0]?.name || 'Mixed results'}`;
+        const philliesInfo = `Phillies: Record ${philliesData.team.record?.items?.[0]?.summary || 'Spring Training'} • Recent: ${philliesData.team.recentGames?.[0]?.name || 'Mixed results'}`;
 
-        const eaglesInfo = 'Eagles: 11-6 (2025 ended) • Offseason - Free agency & draft prep';
+        const eaglesInfo = 'Eagles: 11-6 (2025 ended) • Offseason - Draft prep';
 
         const flyersRes = await fetch('https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/teams/16');
         const flyersData = await flyersRes.json();
