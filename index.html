@@ -128,8 +128,8 @@
       -webkit-animation-play-state: paused;
     }
     @media (max-width: 768px) {
-      .ticker { font-size: 12px; }
-      .ticker span { margin-right: 30px; }
+      .ticker { font-size: 12px; padding: 8px 0; }
+      .ticker span { margin-right: 25px; }
     }
 
     .wrap{
@@ -538,11 +538,13 @@
 
     <div id="list"></div>
 
-    <!-- Ripper: Type song name or paste URL -->
+    <!-- Ripper: Type song name to auto-search & rip top match -->
     <div class="ripper-section">
       <div class="ripper-title">Rip YouTube Song</div>
       
-      <input type="text" class="ripper-input" id="songInput" placeholder="Type song name (e.g. Drake God's Plan)" onkeypress="if(event.key==='Enter') ripFromName();" />
+      <input type="text" class="ripper-input" id="songInput" placeholder="Type song name (e.g. Drake God's Plan)" 
+             onkeydown="if(event.key === ' ' || event.keyCode === 32) { event.stopPropagation(); }" 
+             onkeyup="if(event.key === 'Enter') ripFromName();" />
       
       <div class="ripper-buttons" style="margin-top:16px;">
         <button class="ripper-btn mp3" onclick="ripFromName()">Get MP3</button>
@@ -552,7 +554,7 @@
       <div id="searchStatus" style="margin-top:16px; font-size:13px; color:var(--muted); text-align:center;"></div>
 
       <div class="ripper-note" style="margin-top:16px;">
-        Just type the song name → rips the top YouTube match automatically
+        Just type the song/artist → auto-finds top YouTube match & rips
       </div>
     </div>
 
@@ -572,7 +574,6 @@
     </div>
   </div>
 
-  <!-- Mini player, audio, modal unchanged -->
   <div class="mini" id="mini">
     <div class="miniTop" id="miniTap">
       <div class="miniArt"><img id="miniImg" alt="" /></div>
@@ -635,80 +636,77 @@
 
   <script src="app.js"></script>
 
-  <!-- Ripper logic: now primarily song name search -->
+  <!-- Ripper logic: song name → auto top match rip -->
   <script>
-    // Public Invidious instance (fast & working in US 2026)
-    const invidious = 'https://inv.tux.pizza';
+    const invidious = 'https://inv.tux.pizza'; // Change if down (check instances.invidio.us)
 
     async function ripFromName(isVideo = false) {
       const input = document.getElementById('songInput').value.trim();
       const status = document.getElementById('searchStatus');
 
       if (!input) {
-        alert("Type a song name or paste YouTube URL first!");
+        alert("Type a song name first!");
         return;
       }
 
-      status.innerHTML = 'Searching YouTube...';
+      status.innerHTML = 'Searching & ripping top match...';
 
-      // If it's already a full URL, rip directly
+      // If full URL pasted, rip directly
       if (input.includes('youtube.com') || input.includes('youtu.be')) {
-        status.innerHTML = 'Ripping from pasted URL...';
         rip(isVideo ? 'video' : 'mp3', input);
         return;
       }
 
       try {
-        // Search YouTube via Invidious
         const res = await fetch(`${invidious}/api/v1/search?q=${encodeURIComponent(input)}&type=video`);
-        if (!res.ok) throw new Error('Search failed');
+        if (!res.ok) throw new Error('Search error');
         const data = await res.json();
 
         if (!data.length) {
-          status.innerHTML = 'No results found. Try a different name or paste full URL.';
+          status.innerHTML = 'No match found. Try different words or paste URL.';
           return;
         }
 
-        // Take the #1 result automatically
-        const topVideo = data[0];
-        const videoId = topVideo.videoId;
-        const url = `https://www.youtube.com/watch?v=${videoId}`;
+        const top = data[0];
+        const url = `https://www.youtube.com/watch?v=${top.videoId}`;
+        status.innerHTML = `Ripping: "${top.title}" by ${top.author || 'Unknown'}...`;
 
-        status.innerHTML = `Ripping top match: "${topVideo.title}" by ${topVideo.author || 'Unknown'}...`;
-
-        // Rip it!
         rip(isVideo ? 'video' : 'mp3', url);
       } catch (err) {
-        status.innerHTML = 'Search failed. Try pasting full YouTube URL instead.';
+        status.innerHTML = 'Failed to search. Paste full YouTube URL instead.';
         console.error(err);
       }
     }
 
     function rip(type, url) {
-      if (!url) {
-        alert("No valid link found!");
-        return;
-      }
+      if (!url) return alert("No link!");
 
-      let ripperUrls = [];
+      let rippers = [];
       if (type === 'mp3') {
-        ripperUrls = [
+        rippers = [
           `https://ytmp3.as/?url=${encodeURIComponent(url)}`,
           `https://fastytm.com/?url=${encodeURIComponent(url)}`,
           `https://v6.www-y2mate.com/?url=${encodeURIComponent(url)}`
         ];
       } else {
-        ripperUrls = [
+        rippers = [
           `https://www.ytvideodownloader.online/?url=${encodeURIComponent(url)}`,
           `https://yt5s.ltd/?url=${encodeURIComponent(url)}`,
           `https://publer.com/tools/youtube-video-downloader?url=${encodeURIComponent(url)}`
         ];
       }
 
-      window.open(ripperUrls[0], '_blank');
-      if (ripperUrls[1]) setTimeout(() => window.open(ripperUrls[1], '_blank'), 1200);
-      if (ripperUrls[2]) setTimeout(() => window.open(ripperUrls[2], '_blank'), 2400);
+      window.open(rippers[0], '_blank');
+      if (rippers[1]) setTimeout(() => window.open(rippers[1], '_blank'), 1500);
+      if (rippers[2]) setTimeout(() => window.open(rippers[2], '_blank'), 3000);
     }
+
+    // Block spacebar from triggering player when typing in songInput
+    document.getElementById('songInput').addEventListener('keydown', function(e) {
+      if (e.key === ' ' || e.keyCode === 32) {
+        e.stopPropagation();
+      }
+    }, true);
 
     function addLocalMp3() {
       const fileInput = document.getElementById('addMp3File');
@@ -758,7 +756,7 @@
     }
   </script>
 
-  <!-- Ticker (unchanged from previous version) -->
+  <!-- Ticker script (unchanged) -->
   <script>
     async function loadPhillyTicker() {
       const ticker = document.getElementById('tickerContent');
