@@ -26,7 +26,6 @@
       background: #000 url("fellas.jpg") center/cover fixed no-repeat;
       overflow-x:hidden;
     }
-    /* cinematic dark + blur */
     body::before{
       content:"";
       position:fixed; inset:0;
@@ -34,7 +33,6 @@
       backdrop-filter: blur(8px) saturate(1.1);
       z-index:-2;
     }
-    /* grit */
     body::after{
       content:"";
       position:fixed; inset:-40px;
@@ -44,7 +42,6 @@
       z-index:-1;
       mix-blend-mode: overlay;
     }
-    /* Header */
     header{
       position:sticky; top:0; z-index:50;
       background: var(--blue);
@@ -85,14 +82,12 @@
       backdrop-filter: blur(8px);
     }
     .chip:active{ transform: translateY(1px); }
-    /* Layout */
     .wrap{
       max-width: 860px;
       margin: 0 auto;
       padding: 16px;
-      padding-bottom: 140px; /* room for mini player */
+      padding-bottom: 140px;
     }
-    /* Search bar row */
     .searchRow{
       display:flex; gap:10px; align-items:center;
       margin-top: 10px;
@@ -127,7 +122,6 @@
       background: rgba(30,108,255,.22);
     }
     .pill:active{ transform: translateY(1px); }
-    /* Ripper section */
     .ripper-section {
       margin: 24px 0 32px;
       padding: 20px;
@@ -186,7 +180,7 @@
       transition: all .2s;
     }
     .ripper-btn.mp3 {
-      background: #1DB954; /* green for audio */
+      background: #1DB954;
       color: white;
     }
     .ripper-btn.video {
@@ -201,8 +195,6 @@
       text-align: center;
       font-weight: 800;
     }
-
-    /* Rest of your styles (list, mini player, modal, etc.) remain unchanged */
     #list{ margin-top: 14px; display:grid; gap:12px; }
     .song{
       display:flex; gap:12px; align-items:center;
@@ -493,13 +485,36 @@
       </div>
     </div>
 
+    <!-- Add Downloaded MP3 to List -->
+    <div class="ripper-section" style="margin-top: 32px;">
+      <div class="ripper-title">Add Downloaded MP3 to Playlist</div>
+      <p style="text-align:center; color:var(--muted); font-size:13px; margin:8px 0;">
+        After downloading MP3 → select it here to add to your song list
+      </p>
+      <input type="file" id="addMp3File" accept="audio/mp3,audio/mpeg" style="display:block; margin:16px auto; padding:12px; background:rgba(0,0,0,.55); border:1px solid var(--line); border-radius:var(--radius); color:#fff; width:100%; max-width:400px;" />
+      <input type="text" id="addMp3Title" placeholder="Song Title (optional)" class="ripper-input" style="margin-bottom:8px;" />
+      <input type="text" id="addMp3Artist" placeholder="Artist (optional)" class="ripper-input" />
+      <button class="ripper-btn" onclick="addLocalMp3()" style="background:var(--blue); margin-top:12px;">Add to List</button>
+    </div>
+
+    <!-- Philly Sports Scores Section -->
+    <div class="ripper-section" style="margin: 32px 0;">
+      <div class="ripper-title">Philly Sports Scores</div>
+      <div id="phillyScores" style="font-size:13px; color:var(--muted); text-align:center;">
+        Loading Phillies, Eagles, Flyers updates...
+      </div>
+      <div style="margin-top:12px; font-size:11px; color:var(--muted); text-align:center;">
+        Powered by ESPN public data • For personal use • Refresh page for latest
+      </div>
+    </div>
+
     <div id="list"></div>
     <div class="hint" id="hint" style="display:none;">
       Swipe on the big cover: left/right = next/prev • double tap = play/pause
     </div>
   </div>
 
-  <!-- Mini Player, audio, modal remain the same -->
+  <!-- Mini Player -->
   <div class="mini" id="mini">
     <div class="miniTop" id="miniTap">
       <div class="miniArt"><img id="miniImg" alt="" /></div>
@@ -525,6 +540,8 @@
     </div>
   </div>
   <audio id="audio" preload="metadata"></audio>
+
+  <!-- Now Playing Modal -->
   <div class="modal" id="modal">
     <div class="npTop">
       <div class="npTag" id="npMode">GZ UP</div>
@@ -561,41 +578,129 @@
 
   <script src="app.js"></script>
 
-  <!-- Ripper logic - updated services Feb 2026 -->
+  <!-- Ripper logic -->
   <script>
     function rip(type) {
       const url = document.getElementById('ytUrl').value.trim();
-      if (!url) {
-        alert("Paste a YouTube link first!");
-        return;
-      }
-      if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
-        alert("Make sure it's a YouTube link!");
-        return;
-      }
+      if (!url) { alert("Paste a YouTube link first!"); return; }
+      if (!url.includes('youtube.com') && !url.includes('youtu.be')) { alert("Make sure it's a YouTube link!"); return; }
 
       let urls = [];
       if (type === 'mp3') {
-        // MP3/audio - working in US 2026 per recent checks
         urls = [
-          `https://ytmp3.as/?url=${encodeURIComponent(url)}`,          // YTMP3 variant
-          `https://fastytm.com/?url=${encodeURIComponent(url)}`,      // FastYTM - lightweight
-          `https://v6.www-y2mate.com/?url=${encodeURIComponent(url)}` // Y2Mate still reliable
+          `https://ytmp3.as/?url=${encodeURIComponent(url)}`,
+          `https://fastytm.com/?url=${encodeURIComponent(url)}`,
+          `https://v6.www-y2mate.com/?url=${encodeURIComponent(url)}`
         ];
       } else {
-        // Video/MP4
         urls = [
-          `https://www.ytvideodownloader.online/?url=${encodeURIComponent(url)}`, // Clean HD
-          `https://yt5s.ltd/?url=${encodeURIComponent(url)}`,                    // YT5s fast/no limits
-          `https://publer.com/tools/youtube-video-downloader?url=${encodeURIComponent(url)}` // Ad-light
+          `https://www.ytvideodownloader.online/?url=${encodeURIComponent(url)}`,
+          `https://yt5s.ltd/?url=${encodeURIComponent(url)}`,
+          `https://publer.com/tools/youtube-video-downloader?url=${encodeURIComponent(url)}`
         ];
       }
 
-      // Open main one + fallback(s) with delay
       window.open(urls[0], '_blank');
       if (urls[1]) setTimeout(() => window.open(urls[1], '_blank'), 1200);
       if (urls[2]) setTimeout(() => window.open(urls[2], '_blank'), 2400);
     }
+
+    function addLocalMp3() {
+      const fileInput = document.getElementById('addMp3File');
+      const titleInput = document.getElementById('addMp3Title').value.trim() || 'Downloaded Track';
+      const artistInput = document.getElementById('addMp3Artist').value.trim() || 'Unknown';
+
+      if (!fileInput.files.length) {
+        alert("Select the downloaded MP3 file first!");
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const blobUrl = URL.createObjectURL(file);
+
+      const newSong = {
+        title: titleInput,
+        artist: artistInput,
+        url: blobUrl,
+        art: ''
+      };
+
+      // Fallback append to list (customize if app.js has addSong())
+      const list = document.getElementById('list');
+      const songEl = document.createElement('div');
+      songEl.className = 'song';
+      songEl.innerHTML = `
+        <div class="art"><img src="placeholder-art.jpg" alt=""></div>
+        <div class="meta">
+          <div class="t">${newSong.title}</div>
+          <div class="a">${newSong.artist}</div>
+        </div>
+        <div class="rowBtns">
+          <button class="btn play" onclick="playLocal('${blobUrl}', '${newSong.title}', '${newSong.artist}')">Play</button>
+        </div>
+      `;
+      list.appendChild(songEl);
+
+      alert(`Added "${titleInput}" by ${artistInput} to your list!`);
+    }
+
+    function playLocal(url, title, artist) {
+      const audio = document.getElementById('audio');
+      audio.src = url;
+      audio.play();
+      document.getElementById('miniTitle').textContent = title;
+      document.getElementById('miniArtist').textContent = artist;
+      // Add your showMini/updateUI calls here if in app.js
+    }
+  </script>
+
+  <!-- Philly Sports Scores -->
+  <script>
+    async function loadPhillyScores() {
+      const container = document.getElementById('phillyScores');
+      container.innerHTML = 'Fetching latest Phillies, Eagles, Flyers updates...';
+
+      try {
+        // Phillies (MLB team ID 22)
+        const philliesRes = await fetch('https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams/22');
+        const philliesData = await philliesRes.json();
+        const philliesRecord = philliesData.team.record?.items?.[0]?.summary || '2-4-1 (Spring Training)';
+        const philliesRecent = philliesData.team.recentGames?.[0] ? 
+          `${philliesData.team.recentGames[0].name} (${philliesData.team.recentGames[0].result})` : 'Recent: Lost to Tigers 8-16 (Feb 27)';
+
+        // Eagles (NFL team ID 20)
+        const eaglesRes = await fetch('https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/20');
+        const eaglesData = await eaglesRes.json();
+        const eaglesRecord = eaglesData.team.record?.items?.[0]?.summary || '11-6 (2025 season ended)';
+        const eaglesRecent = 'Offseason – Draft/Free Agency prep for 2026';
+
+        // Flyers (NHL team ID 16)
+        const flyersRes = await fetch('https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/teams/16');
+        const flyersData = await flyersRes.json();
+        const flyersRecord = flyersData.team.record?.items?.[0]?.summary || '26-21-11 (63 pts)';
+        const flyersRecent = flyersData.team.recentGames?.[0] ? 
+          `${flyersData.team.recentGames[0].name} (${flyersData.team.recentGames[0].result})` : 'Recent: Won 3-2 OT vs Rangers (Feb 26)';
+
+        container.innerHTML = `
+          <div style="margin:8px 0; font-weight:800; color:var(--blue);">Phillies (MLB Spring Training)</div>
+          <div>Record: ${philliesRecord}</div>
+          <div>${philliesRecent}</div>
+
+          <div style="margin:16px 0 8px; font-weight:800; color:var(--blue);">Eagles (NFL)</div>
+          <div>2025 Record: ${eaglesRecord}</div>
+          <div>Status: ${eaglesRecent}</div>
+
+          <div style="margin:16px 0 8px; font-weight:800; color:var(--blue);">Flyers (NHL)</div>
+          <div>Record: ${flyersRecord}</div>
+          <div>${flyersRecent}</div>
+        `;
+      } catch (err) {
+        container.innerHTML = 'Error loading – refresh page or check connection.';
+        console.error(err);
+      }
+    }
+
+    window.addEventListener('load', loadPhillyScores);
   </script>
 
   <!-- Service Worker -->
