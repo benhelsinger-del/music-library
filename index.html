@@ -83,7 +83,7 @@
     }
     .chip:active{ transform: translateY(1px); }
 
-    /* NEW: Sports Ticker (right below header) */
+    /* FIXED Ticker: Constant smooth infinite flow */
     .ticker-wrap {
       width: 100%;
       overflow: hidden;
@@ -91,14 +91,17 @@
       border-bottom: 1px solid var(--line);
       box-shadow: 0 4px 12px rgba(0,0,0,.4);
       position: sticky;
-      top: 60px; /* Adjust based on header height */
+      top: 60px; /* Adjust if header height changes */
       z-index: 49;
     }
     .ticker {
-      display: inline-block;
+      display: flex;
       white-space: nowrap;
+      animation: ticker-flow 45s linear infinite; /* 45s = medium speed; lower = faster */
+      will-change: transform;
+      transform-style: preserve-3d;
+      backface-visibility: hidden;
       padding: 10px 0;
-      animation: ticker 60s linear infinite;
       color: #fff;
       font-weight: 800;
       font-size: 13px;
@@ -106,13 +109,14 @@
     .ticker span {
       margin-right: 40px;
       color: var(--blue);
+      flex-shrink: 0;
     }
     .ticker strong {
       color: #fff;
     }
-    @keyframes ticker {
-      0% { transform: translateX(100%); }
-      100% { transform: translateX(-100%); }
+    @keyframes ticker-flow {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); } /* -50% because content is duplicated twice */
     }
     .ticker:hover {
       animation-play-state: paused;
@@ -290,7 +294,7 @@
       cursor:pointer;
     }
     .btn.play{ background: var(--blue); }
-    .btn.download{ background: #ff5722; } /* Orange for download */
+    .btn.download{ background: #ff5722; }
     .btn.ghost{
       background: rgba(0,0,0,.25);
       border:1px solid var(--line);
@@ -502,10 +506,9 @@
     </div>
   </header>
 
-  <!-- NEW: Horizontal Sports Ticker (right below header) -->
+  <!-- FIXED Ticker: Constant smooth flow right below header -->
   <div class="ticker-wrap">
     <div class="ticker" id="tickerContent">
-      <!-- JS will fill this with dynamic scores -->
       Loading Philly sports ticker... (Phillies • Eagles • Flyers)
     </div>
   </div>
@@ -518,7 +521,7 @@
       <button class="pill" id="repeatBtn">Repeat</button>
     </div>
 
-    <!-- Song List (moved before ripper as requested) -->
+    <!-- Song List first -->
     <div id="list"></div>
 
     <!-- YouTube Ripper section -->
@@ -530,7 +533,7 @@
         <button class="ripper-btn video" onclick="rip('video')">Get Video</button>
       </div>
       <div class="ripper-note">
-        Personal/offline use only • Opens external sites • Respect creators & YouTube rules
+        Personal/offline use only • Opens external sites (test which loads best) • Respect creators & YouTube rules
       </div>
     </div>
 
@@ -551,7 +554,7 @@
     </div>
   </div>
 
-  <!-- Mini Player -->
+  <!-- Mini Player, audio, modal remain unchanged -->
   <div class="mini" id="mini">
     <div class="miniTop" id="miniTap">
       <div class="miniArt"><img id="miniImg" alt="" /></div>
@@ -577,8 +580,6 @@
     </div>
   </div>
   <audio id="audio" preload="metadata"></audio>
-
-  <!-- Now Playing Modal -->
   <div class="modal" id="modal">
     <div class="npTop">
       <div class="npTag" id="npMode">GZ UP</div>
@@ -615,7 +616,7 @@
 
   <script src="app.js"></script>
 
-  <!-- Ripper & Add MP3 logic -->
+  <!-- Ripper + Add MP3 logic -->
   <script>
     function rip(type) {
       const url = document.getElementById('ytUrl').value.trim();
@@ -673,7 +674,7 @@
         </div>
         <div class="rowBtns">
           <button class="btn play" onclick="playLocal('${blobUrl}', '${newSong.title}', '${newSong.artist}')">Play</button>
-          <button class="btn download" onclick="alert('Downloading ${newSong.title}... (implement real download here)')">Download</button>
+          <button class="btn download" onclick="alert('Downloading ${newSong.title}... (add real logic here if needed)')">Download</button>
         </div>
       `;
       list.appendChild(songEl);
@@ -687,11 +688,11 @@
       audio.play();
       document.getElementById('miniTitle').textContent = title;
       document.getElementById('miniArtist').textContent = artist;
-      // Call your showMini or update UI functions from app.js if needed
+      // Integrate with app.js UI updates if needed
     }
   </script>
 
-  <!-- Philly Sports Ticker -->
+  <!-- FIXED Ticker logic -->
   <script>
     async function loadPhillyTicker() {
       const ticker = document.getElementById('tickerContent');
@@ -701,29 +702,27 @@
         // Phillies (MLB team ID 22)
         const philliesRes = await fetch('https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams/22');
         const philliesData = await philliesRes.json();
-        const philliesInfo = `Phillies: Record ${philliesData.team.record?.items?.[0]?.summary || '2-4-1 (Spring Training)'} • Recent: ${philliesData.team.recentGames?.[0]?.name || '10-2 Win vs Marlins (Feb 27)'}`;
+        const philliesInfo = `Phillies: Record ${philliesData.team.record?.items?.[0]?.summary || 'Spring Training ongoing'} • Recent: ${philliesData.team.recentGames?.[0]?.name || 'Mixed results - check ESPN'}`;
 
         // Eagles (NFL team ID 20)
-        const eaglesInfo = 'Eagles: 11-6 (2025 season ended) • Offseason – Draft prep for 2026';
+        const eaglesInfo = 'Eagles: 11-6 (2025 ended) • Offseason - Free agency & draft prep';
 
         // Flyers (NHL team ID 16)
         const flyersRes = await fetch('https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/teams/16');
         const flyersData = await flyersRes.json();
-        const flyersInfo = `Flyers: Record ${flyersData.team.record?.items?.[0]?.summary || '26-21-11'} • Recent: ${flyersData.team.recentGames?.[0]?.name || '3-2 OT Win vs Rangers (Feb 26)'}`;
+        const flyersInfo = `Flyers: Record ${flyersData.team.record?.items?.[0]?.summary || '26-21-11'} • Recent: ${flyersData.team.recentGames?.[0]?.name || '3-2 OT Win vs Rangers'}`;
 
-        ticker.innerHTML = `
+        const segment = `
           <span>${philliesInfo}</span>
-          <span style="color:#ff9800;">•</span>
+          <span style="color:#ff9800;"> • </span>
           <span>${eaglesInfo}</span>
-          <span style="color:#ff9800;">•</span>
+          <span style="color:#ff9800;"> • </span>
           <span>${flyersInfo}</span>
-          <span style="color:#ff9800;">•</span>
-          <span>${philliesInfo}</span> <!-- Duplicate for seamless loop -->
-          <span style="color:#ff9800;">•</span>
-          <span>${eaglesInfo}</span>
-          <span style="color:#ff9800;">•</span>
-          <span>${flyersInfo}</span>
+          <span style="color:#ff9800;"> • </span>
         `;
+
+        // Duplicate 4x for ultra-smooth long loop
+        ticker.innerHTML = segment.repeat(4);
       } catch (err) {
         ticker.innerHTML = 'Philly sports update unavailable – refresh page • Go Birds/Phils/Flyers!';
         console.error(err);
