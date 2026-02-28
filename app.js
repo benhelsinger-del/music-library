@@ -1,53 +1,92 @@
-// app.js - GZ UP RADIO Player Logic
+// app.js - GZ UP RADIO Player with persistent local MP3s
 
 // Global state
-let songs = [];              // Array of song objects
-let currentIndex = -1;       // Current playing song index
+let songs = [];              // { id, title, artist, url (blob or base64), art, fav, isLocal }
+let currentIndex = -1;
 let isPlaying = false;
 let isShuffle = false;
 let isRepeat = false;
-let audio = document.getElementById('audio');
-let mini = document.getElementById('mini');
-let modal = document.getElementById('modal');
 
-// DOM elements
-const listEl = document.getElementById('list');
-const miniPlay = document.getElementById('miniPlay');
-const npPlay = document.getElementById('npPlay');
-const miniTitle = document.getElementById('miniTitle');
-const miniArtist = document.getElementById('miniArtist');
-const npTitle = document.getElementById('npTitle');
-const npArtist = document.getElementById('npArtist');
-const barFill = document.getElementById('barFill');
-const barFill2 = document.getElementById('barFill2');
-const scrub = document.getElementById('scrub');
-const scrub2 = document.getElementById('scrub2');
-const tNow = document.getElementById('tNow');
-const tDur = document.getElementById('tDur');
-const tNow2 = document.getElementById('tNow2');
-const tDur2 = document.getElementById('tDur2');
+const audio = document.getElementById('audio');
+const mini = document.getElementById('mini');
+const modal = document.getElementById('modal');
 
-// Format time (mm:ss)
-function formatTime(seconds) {
-  const min = Math.floor(seconds / 60);
-  const sec = Math.floor(seconds % 60);
-  return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+// DOM shortcuts
+const listEl       = document.getElementById('list');
+const miniPlay     = document.getElementById('miniPlay');
+const npPlay       = document.getElementById('npPlay');
+const miniTitle    = document.getElementById('miniTitle');
+const miniArtist   = document.getElementById('miniArtist');
+const npTitle      = document.getElementById('npTitle');
+const npArtist     = document.getElementById('npArtist');
+const barFill      = document.getElementById('barFill');
+const barFill2     = document.getElementById('barFill2');
+const scrub        = document.getElementById('scrub');
+const scrub2       = document.getElementById('scrub2');
+const tNow         = document.getElementById('tNow');
+const tDur         = document.getElementById('tDur');
+const tNow2        = document.getElementById('tNow2');
+const tDur2        = document.getElementById('tDur2');
+
+// Format time mm:ss
+function formatTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${s < 10 ? '0' : ''}${s}`;
 }
 
-// Load / render song list
+// Save / load persistent local songs (base64 for offline use)
+function saveLocalSongs() {
+  const localOnly = songs.filter(s => s.isLocal);
+  const data = localOnly.map(s => ({
+    title: s.title,
+    artist: s.artist,
+    base64: s.base64,       // we'll store base64 instead of blob
+    fav: s.fav || false
+  }));
+  localStorage.setItem('gzup_local_songs', JSON.stringify(data));
+}
+
+function loadLocalSongs() {
+  const saved = localStorage.getItem('gzup_local_songs');
+  if (!saved) return;
+
+  const data = JSON.parse(saved);
+  data.forEach(item => {
+    // Recreate blob from base64
+    fetch(`data:audio/mp3;base64,${item.base64}`)
+      .then(res => res.blob())
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        songs.push({
+          title: item.title,
+          artist: item.artist,
+          url: url,
+          base64: item.base64,   // keep for future reloads
+          art: '',
+          fav: item.fav,
+          isLocal: true
+        });
+        renderList();
+      })
+      .catch(err => console.error("Failed to restore local song:", err));
+  });
+}
+
+// Render song list
 function renderList(filter = '') {
   listEl.innerHTML = '';
-  const favsOnly = document.getElementById('filterFavs').classList.contains('on');
+  const favsOnly = document.getElementById('filterFavs')?.classList.contains('on') || false;
 
   songs
-    .filter(song => {
-      if (favsOnly && !song.fav) return false;
+    .filter(s => {
+      if (favsOnly && !s.fav) return false;
       const term = filter.toLowerCase();
-      return song.title.toLowerCase().includes(term) || song.artist.toLowerCase().includes(term);
+      return s.title.toLowerCase().includes(term) || s.artist.toLowerCase().includes(term);
     })
-    .forEach((song, index) => {
+    .forEach((song, idx) => {
       const el = document.createElement('div');
-      el.className = 'song' + (index === currentIndex ? ' current' : '');
+      el.className = `song${idx === currentIndex ? ' current' : ''}`;
       el.innerHTML = `
         <div class="art"><img src="${song.art || 'placeholder-art.jpg'}" alt=""></div>
         <div class="meta">
@@ -55,98 +94,87 @@ function renderList(filter = '') {
           <div class="a">${song.artist}</div>
         </div>
         <div class="rowBtns">
-          <button class="btn play" onclick="playSong(${index})">${index === currentIndex && isPlaying ? 'Pause' : 'Play'}</button>
-          <button class="btn ghost heart" onclick="toggleFav(${index})">${song.fav ? '♥' : '♡'}</button>
-          <button class="btn download" onclick="downloadSong(${index})">Download</button>
+          <button class="btn play" onclick="playSong(${idx})">${idx === currentIndex && isPlaying ? 'Pause' : 'Play'}</button>
+          <button class="btn ghost heart" onclick="toggleFav(${idx})">${song.fav ? '♥' : '♡'}</button>
+          <button class="btn download" onclick="downloadSong(${idx})">Download</button>
         </div>
       `;
       listEl.appendChild(el);
     });
 }
 
-// Play a song by index
-function playSong(index) {
-  if (index === currentIndex && isPlaying) {
+// Play song
+function playSong(idx) {
+  if (idx === currentIndex && isPlaying) {
     audio.pause();
     isPlaying = false;
   } else {
-    currentIndex = index;
-    const song = songs[index];
+    currentIndex = idx;
+    const song = songs[idx];
     audio.src = song.url;
-    audio.play().catch(e => console.error("Play failed:", e));
+    audio.play().catch(e => {
+      console.error("Playback failed:", e);
+      alert("Cannot play this track. It may be corrupted or expired.");
+    });
     isPlaying = true;
     updateUI();
   }
-  renderList(document.getElementById('search').value);
+  renderList(document.getElementById('search')?.value || '');
 }
 
-// Update mini/modal UI
+// Update UI (mini + modal)
 function updateUI() {
   if (currentIndex < 0) return;
-
   const song = songs[currentIndex];
+
   miniTitle.textContent = song.title;
   miniArtist.textContent = song.artist;
   npTitle.textContent = song.title;
   npArtist.textContent = song.artist;
 
-  document.querySelectorAll('.song').forEach((el, i) => {
-    el.classList.toggle('current', i === currentIndex);
-  });
-
   mini.classList.add('show');
-  if (modal.classList.contains('show')) {
-    // Update modal progress too
-  }
+  // Modal updates handled by CSS class
 }
 
-// Progress / time update
+// Progress
 audio.addEventListener('timeupdate', () => {
   if (!audio.duration) return;
-  const percent = (audio.currentTime / audio.duration) * 100;
-  barFill.style.width = percent + '%';
-  barFill2.style.width = percent + '%';
-  scrub.value = percent;
-  scrub2.value = percent;
+  const pct = (audio.currentTime / audio.duration) * 100;
+  barFill.style.width = pct + '%';
+  barFill2.style.width = pct + '%';
+  scrub.value = pct;
+  scrub2.value = pct;
   tNow.textContent = formatTime(audio.currentTime);
   tDur.textContent = formatTime(audio.duration);
   tNow2.textContent = formatTime(audio.currentTime);
   tDur2.textContent = formatTime(audio.duration);
 });
 
-// Scrub / seek
-function setupScrub(el) {
+// Scrub
+[scrub, scrub2].forEach(el => {
   el.addEventListener('input', () => {
-    const percent = el.value;
-    audio.currentTime = (percent / 100) * audio.duration;
+    audio.currentTime = (el.value / 100) * audio.duration;
   });
-}
-setupScrub(scrub);
-setupScrub(scrub2);
+});
 
-// Play/pause buttons
-miniPlay.addEventListener('click', () => {
+// Controls
+miniPlay.onclick = npPlay.onclick = () => {
   if (isPlaying) {
     audio.pause();
     miniPlay.textContent = '▶';
+    npPlay.textContent = '▶';
   } else {
     audio.play();
     miniPlay.textContent = '❚❚';
+    npPlay.textContent = '❚❚';
   }
   isPlaying = !isPlaying;
-  npPlay.textContent = isPlaying ? '❚❚' : '▶';
-});
+};
 
-npPlay.addEventListener('click', () => miniPlay.click());
-
-// Next / Prev
 document.getElementById('miniNext').onclick = document.getElementById('npNext').onclick = () => {
   let next = currentIndex + 1;
-  if (isShuffle) {
-    next = Math.floor(Math.random() * songs.length);
-  } else if (next >= songs.length) {
-    next = isRepeat ? 0 : currentIndex;
-  }
+  if (isShuffle) next = Math.floor(Math.random() * songs.length);
+  if (next >= songs.length) next = isRepeat ? 0 : currentIndex;
   playSong(next);
 };
 
@@ -156,74 +184,114 @@ document.getElementById('miniPrev').onclick = document.getElementById('npPrev').
   playSong(prev);
 };
 
-// Shuffle / Repeat
 document.getElementById('shuffleBtn').onclick = function() {
   isShuffle = !isShuffle;
   this.classList.toggle('on', isShuffle);
-  this.textContent = isShuffle ? 'Shuffle On' : 'Shuffle';
 };
 
 document.getElementById('repeatBtn').onclick = function() {
   isRepeat = !isRepeat;
   this.classList.toggle('on', isRepeat);
-  this.textContent = isRepeat ? 'Repeat On' : 'Repeat';
 };
 
-// Fav toggle
-function toggleFav(index) {
-  songs[index].fav = !songs[index].fav;
-  localStorage.setItem('gzup_favs', JSON.stringify(songs.map(s => s.fav)));
-  renderList(document.getElementById('search').value);
+function toggleFav(idx) {
+  songs[idx].fav = !songs[idx].fav;
+  localStorage.setItem('gzup_favs', JSON.stringify(songs.map(s => ({id: s.id || s.title, fav: s.fav}))));
+  renderList(document.getElementById('search')?.value || '');
 }
 
-// Download placeholder
-function downloadSong(index) {
-  const song = songs[index];
+function downloadSong(idx) {
+  const song = songs[idx];
   if (song.url.startsWith('blob:')) {
     const a = document.createElement('a');
     a.href = song.url;
     a.download = `${song.title} - ${song.artist}.mp3`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
   } else {
-    alert('Download not available for this track (remote URL)');
+    alert("Download not supported for remote tracks.");
   }
 }
 
-// Search / filter
-document.getElementById('search').addEventListener('input', e => {
-  renderList(e.target.value);
-});
-
-// Favs filter
-document.getElementById('filterFavs').onclick = function() {
-  this.classList.toggle('on');
-  this.textContent = this.classList.contains('on') ? 'Favs Only' : 'All';
-  renderList(document.getElementById('search').value);
-};
-
-// Modal open/close
-document.getElementById('openNowPlaying').onclick = () => modal.classList.add('show');
-document.getElementById('closeModal').onclick = () => modal.classList.remove('show');
-
-// Initial load (example songs - replace with your data source)
+// Init - load saved local songs + favs
 function init() {
-  // Example placeholder songs (add your own or load from localStorage / JSON)
-  songs = [
-    { title: "God's Plan", artist: "Drake", url: "https://example.com/song1.mp3", art: "", fav: false },
-    { title: "Blinding Lights", artist: "The Weeknd", url: "https://example.com/song2.mp3", art: "", fav: false },
-    // ... add more or load dynamically
-  ];
+  // Load saved local MP3s (base64)
+  const savedLocal = localStorage.getItem('gzup_local_songs');
+  if (savedLocal) {
+    const data = JSON.parse(savedLocal);
+    data.forEach(item => {
+      const binary = atob(item.base64);
+      const len = binary.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: 'audio/mp3' });
+      const url = URL.createObjectURL(blob);
+      songs.push({
+        title: item.title,
+        artist: item.artist,
+        url,
+        base64: item.base64,
+        art: '',
+        fav: item.fav,
+        isLocal: true
+      });
+    });
+  }
 
-  // Restore favs from localStorage if any
+  // Load favs for any existing songs (if you have remote ones)
   const savedFavs = JSON.parse(localStorage.getItem('gzup_favs') || '[]');
-  songs.forEach((s, i) => { if (savedFavs[i]) s.fav = true; });
+  songs.forEach(s => {
+    const saved = savedFavs.find(f => f.id === (s.id || s.title));
+    if (saved) s.fav = saved.fav;
+  });
 
   renderList();
 }
 
 window.addEventListener('load', init);
 
-// Audio ended → next song
+// When adding a local MP3 (called from HTML)
+function addLocalMp3() {
+  const fileInput = document.getElementById('addMp3File');
+  const titleInput = document.getElementById('addMp3Title').value.trim() || 'Downloaded Track';
+  const artistInput = document.getElementById('addMp3Artist').value.trim() || 'Unknown';
+
+  if (!fileInput.files.length) {
+    alert("Select an MP3 file first!");
+    return;
+  }
+
+  const file = fileInput.files[0];
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+    const base64 = e.target.result.split(',')[1]; // remove data:audio/mp3;base64,
+    const blobUrl = URL.createObjectURL(file);
+
+    const newSong = {
+      title: titleInput,
+      artist: artistInput,
+      url: blobUrl,
+      base64: base64,         // save base64 for persistence
+      art: '',
+      fav: false,
+      isLocal: true
+    };
+
+    songs.push(newSong);
+    saveLocalSongs();         // persist to localStorage
+    renderList();
+    alert(`Added "${titleInput}" by ${artistInput} to your library!`);
+    fileInput.value = '';     // clear input
+  };
+
+  reader.readAsDataURL(file);
+}
+
+// Audio ended → next
 audio.addEventListener('ended', () => {
   if (isRepeat) {
     playSong(currentIndex);
@@ -231,3 +299,7 @@ audio.addEventListener('ended', () => {
     document.getElementById('miniNext').click();
   }
 });
+
+// Modal
+document.getElementById('openNowPlaying')?.addEventListener('click', () => modal.classList.add('show'));
+document.getElementById('closeModal')?.addEventListener('click', () => modal.classList.remove('show'));
